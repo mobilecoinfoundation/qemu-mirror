@@ -999,7 +999,7 @@ int cpu_exec(CPUState *cpu)
             }
 
             tb = tb_lookup(cpu, pc, cs_base, flags, cflags);
-            if (tb == NULL) {
+            if (tb == NULL || true) { // XXX: Chris added this to make sure we always generate (and log) the tb when using -d in_asm
                 uint32_t h;
 
                 mmap_lock();
