@@ -38,9 +38,12 @@ OBJD-T: 28c3
 // This happens if the function has multiple basic blocks inside it, for instance if it is a for loop.
 
 use displaydoc::Display;
+use env_logger::{fmt::Color, Builder, Env};
+use log::Level;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
-    io::BufRead
+    env,
+    io::{BufRead, Write},
 };
 
 /// Data that we parsed from a translation block record from qemu.
@@ -144,8 +147,10 @@ fn record_objdt(known_objdts: &mut HashMap<String, HashSet<String>>, mangled_nam
 
 
 fn main() {
+    make_basic_logger();
+
     let mut args = std::env::args();
-    if args.len() > 2 || args.len() == 1 && args.nth(1).unwrap() == "--help" {
+    if args.len() > 2 || (args.len() == 2 && args.nth(1).unwrap() == "--help") {
         eprintln!("Usage:");
         eprintln!("Stream output of qemu -d in_asm into this program on stdin.");
         eprintln!("If desired, pass a filter string, such as a rust crate name, so that only symbols containing that string will be tracked.");
@@ -155,6 +160,12 @@ fn main() {
     }
 
     let target_str = std::env::args().nth(1);
+
+    if let Some(target_str) = target_str.as_ref() {
+        eprintln!("Parsing in_asm blocks, with target_str = {}", target_str);
+    } else {
+        eprintln!("Parsing in_asm blocks, with no target_str");
+    }
 
     let filter = |mangled_name: &str| -> bool {
         if mangled_name.is_empty() { return false; }
@@ -210,3 +221,58 @@ fn main() {
         log::info!("No symbols had multiple traces.");
     }
 }
+
+fn make_basic_logger() {
+    // Support LOG in addition to RUST_LOG. This allows us to not affect
+    // cargo's logs when doing stuff like LOG=trace cargo test -p ...
+    if env::var("RUST_LOG").is_err() && env::var("LOG").is_ok() {
+        env::set_var("RUST_LOG", env::var("LOG").unwrap());
+    }
+    // Default to INFO log level for everything if we do not have an explicit
+    // setting.
+    Builder::from_env(Env::default().default_filter_or("info"))
+        .format(|buf, record| {
+            let mut style = buf.style();
+
+            let color = match record.level() {
+                Level::Error => Color::Red,
+                Level::Warn => Color::Yellow,
+                Level::Info => Color::Green,
+                Level::Debug => Color::Cyan,
+                Level::Trace => Color::Magenta,
+            };
+            style.set_color(color).set_bold(true);
+
+            // Drop cargo registry path if present
+            let file = record
+                .file()
+                .map(|file| {
+                    if file.contains("/.cargo/") {
+                        let mut file = file.split("/.cargo/").last().unwrap();
+                        for _ in 0..3 {
+                            if let Some(index) = file.find("/") {
+                                file = &file[index + 1..];
+                            } else {
+                                return file;
+                            }
+                        }
+                        file
+                    } else {
+                        file
+                    }
+                })
+                .unwrap_or("?");
+
+            writeln!(
+                buf,
+                "{} {} [{}:{}] {}",
+                chrono::Utc::now(),
+                style.value(record.level()),
+                file,
+                record.line().unwrap_or(0),
+                record.args(),
+            )
+        })
+        .init();
+}
+
