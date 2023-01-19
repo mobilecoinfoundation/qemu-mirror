@@ -103,22 +103,25 @@ fn read_translation_block(reader: &mut impl BufRead) -> Result<Option<Translatio
         return Err(TBReadError::ExpectedDashes(buf));
     }
 
+    buf.clear();
     let result = reader.read_line(&mut buf)?;
     if result == 0 { return Err(TBReadError::UnexpectedEof); }
 
     if !buf.starts_with("IN:") {
         return Err(TBReadError::ExpectedInSegment(buf));
     }
-    tb.mangled_name = buf.trim_end()[4..].to_string();
+    tb.mangled_name = buf.trim()[3..].to_string();
 
+    buf.clear();
     let result = reader.read_line(&mut buf)?;
     if result == 0 { return Err(TBReadError::UnexpectedEof); }
 
     if !buf.starts_with("0x") {
         return Err(TBReadError::ExpectedAddress(buf));
     }
-    tb.address = u64::from_str_radix(&buf.trim_end()[2..], 16)?;
+    tb.address = u64::from_str_radix(&buf.trim_end()[2..18], 16)?;
 
+    buf.clear();
     let result = reader.read_line(&mut buf)?;
     if result == 0 { return Err(TBReadError::UnexpectedEof); }
     if !buf.starts_with("OBJD-T: ") {
@@ -128,6 +131,7 @@ fn read_translation_block(reader: &mut impl BufRead) -> Result<Option<Translatio
     tb.objd_t_hex = buf.trim_end()[8..].to_string();
 
     loop {
+        buf.clear();
         let result = reader.read_line(&mut buf)?;
         // This means the file has ended, we think that's okay at this point.
         if result == 0 { return Ok(Some(tb)); }
@@ -197,7 +201,7 @@ fn main() {
                         if filter(&prev_mangled_name) {
                             record_objdt(&mut known_objdts, prev_mangled_name, running_objdt);
                         } else {
-                            log::error!("Skipping symbol: {}", prev_mangled_name);
+                            log::debug!("Skipping symbol: {}", prev_mangled_name);
                         }
                     }
 
