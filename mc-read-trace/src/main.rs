@@ -218,14 +218,14 @@ fn main() {
     }
 
     log::info!("Finished parsing. Found {} symbols.", known_objdts.len());
-    log::info!("The following symbols had multiple traces:");
+    log::info!("The following symbols had multiple distinct traces:");
     let multiples: BTreeMap<String, BTreeSet<String>> = known_objdts.iter().filter(|(_mangled_name, traces)| traces.len() > 1).map(|(name, collection)| (name.clone(), collection.into_iter().cloned().collect())).collect();
 
     for (name, traces) in &multiples {
-        log::info!("Symbol {} repeated {} times:", name, traces.len());
+        log::info!("Symbol {} has {} distinct traces:", name, traces.len());
     }
     if multiples.is_empty() {
-        log::info!("No symbols had multiple traces.");
+        log::info!("No symbols had more than one distinct trace.");
     }
 }
 
