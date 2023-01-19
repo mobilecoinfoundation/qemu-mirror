@@ -99,17 +99,17 @@ fn read_translation_block(reader: &mut impl BufRead) -> Result<Option<Translatio
     // If result is Ok(0) then we have reached EOF
     if result == 0 { return Ok(None); }
 
-    if buf != "----------------" {
+    if buf.trim_end() != "----------------" {
         return Err(TBReadError::ExpectedDashes(buf));
     }
 
     let result = reader.read_line(&mut buf)?;
     if result == 0 { return Err(TBReadError::UnexpectedEof); }
 
-    if !buf.starts_with("IN: ") {
+    if !buf.starts_with("IN:") {
         return Err(TBReadError::ExpectedInSegment(buf));
     }
-    tb.mangled_name = buf[4..].to_string();
+    tb.mangled_name = buf.trim_end()[4..].to_string();
 
     let result = reader.read_line(&mut buf)?;
     if result == 0 { return Err(TBReadError::UnexpectedEof); }
@@ -117,7 +117,7 @@ fn read_translation_block(reader: &mut impl BufRead) -> Result<Option<Translatio
     if !buf.starts_with("0x") {
         return Err(TBReadError::ExpectedAddress(buf));
     }
-    tb.address = u64::from_str_radix(&buf[2..], 16)?;
+    tb.address = u64::from_str_radix(&buf.trim_end()[2..], 16)?;
 
     let result = reader.read_line(&mut buf)?;
     if result == 0 { return Err(TBReadError::UnexpectedEof); }
@@ -125,19 +125,19 @@ fn read_translation_block(reader: &mut impl BufRead) -> Result<Option<Translatio
         return Err(TBReadError::ExpectedObjdt(buf));
     }
     
-    tb.objd_t_hex = buf[8..].to_string();
+    tb.objd_t_hex = buf.trim_end()[8..].to_string();
 
     loop {
         let result = reader.read_line(&mut buf)?;
         // This means the file has ended, we think that's okay at this point.
         if result == 0 { return Ok(Some(tb)); }
         // This is an empty new line after the objdt record, which signals the end of the objdt record.
-        if buf.is_empty() { return Ok(Some(tb)); }
+        if buf.trim_end().is_empty() { return Ok(Some(tb)); }
         // Otherwise, we expect an additional objd-t record.
         if !buf.starts_with("OBJD-T: ") {
             return Err(TBReadError::ExpectedObjdtOrSkip(buf));
         }
-        tb.objd_t_hex.push_str(&buf[8..]);
+        tb.objd_t_hex.push_str(&buf.trim_end()[8..]);
     }
 }
 
@@ -196,6 +196,8 @@ fn main() {
                     if let Some(prev_mangled_name) = prev_mangled_name {
                         if filter(&prev_mangled_name) {
                             record_objdt(&mut known_objdts, prev_mangled_name, running_objdt);
+                        } else {
+                            log::error!("Skipping symbol: {}", prev_mangled_name);
                         }
                     }
 
@@ -205,7 +207,8 @@ fn main() {
                 }
             }
             Err(err) => {
-                log::debug!("Parsing: {}", err);
+                log::error!("Parsing: {}", err);
+                
             }
         }
     }
