@@ -20,3 +20,7 @@ GTAGS
 *.swp
 *.patch
 *.gcov
+
+# Rust
+
+/mc-read-trace/target/
