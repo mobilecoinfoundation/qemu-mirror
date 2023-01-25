@@ -41,7 +41,7 @@ Before doing this, I went to `mc-oblivious/oblivious-ram/src/lib.rs` and removed
 of repetitions from `20_000` to `20`.
 
 ```
-mobliecoinofficial/mc-oblivious$ RUSTFLAGS='-Cinline-threshold=0 -Cdebug-assertions=off -C target-cpu=skylake' cargo test --no-run --target x86_64-unknown-linux-musl --release
+mobilecoinfoundation/mc-oblivious$ RUSTFLAGS='-Cinline-threshold=0 -Cdebug-assertions=off -C target-cpu=skylake' cargo test --no-run --target x86_64-unknown-linux-musl --release
 ```
 
 4. Run qemu against the unit test executable.

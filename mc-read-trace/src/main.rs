@@ -1,7 +1,7 @@
 #![deny(missing_docs)]
 
-//! A binary that parses qmeu -d output, and looks for different traces for the
-//! same fnuction.
+//! A binary that parses qemu -d output, and looks for different traces for the
+//! same function.
 
 // We expect to parse from STDIN a stream like the following, from qemu.
 /*
