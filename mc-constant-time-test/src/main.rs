@@ -47,11 +47,20 @@ mod testing {
     #[test]
     fn test_bad() {
         let mut rng = Hc128Rng::from_seed([7u8; 32]);
-        let mut a = [0; 16];
-        let b = [0; 16];
+        let mut a = [0; 2];
+        let b = [0; 2];
         a[0] = rng.next_u32();
-
-        println!("bad:{:?}", check_bad(&a, &b));
-        println!("good:{:?}", check_good(&a, &b));
+        let result = check_bad(&a, &b);
+        let out = u8::conditional_select(&0u8, &1u8, result);
+        println!("bad:{:?}", out);
+    }
+    fn test_good() {
+        let mut rng = Hc128Rng::from_seed([7u8; 32]);
+        let mut a = [0; 2];
+        let b = [0; 2];
+        a[0] = rng.next_u32();
+        let result = check_good(&a, &b);
+        let out = u8::conditional_select(&0u8, &1u8, result);
+        println!("bad:{:?}", out);
     }
 }
