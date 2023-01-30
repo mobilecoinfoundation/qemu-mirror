@@ -24,3 +24,8 @@ GTAGS
 # Rust
 
 /mc-read-trace/target/
+conf_diff.txt
+configure_out.txt
+configure_out2.txt
+configure_output_william
+mc-constant-time-test/target
