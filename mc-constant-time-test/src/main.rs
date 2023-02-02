@@ -54,6 +54,7 @@ mod testing {
         let out = u8::conditional_select(&0u8, &1u8, result);
         println!("bad:{:?}", out);
     }
+    #[test]
     fn test_good() {
         let mut rng = Hc128Rng::from_seed([7u8; 32]);
         let mut a = [0; 2];
