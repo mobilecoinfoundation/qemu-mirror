@@ -1,6 +1,6 @@
 use rand_core::{RngCore, SeedableRng};
 use rand_hc::Hc128Rng;
-use subtle::{Choice, ConditionallySelectable, ConstantTimeEq};
+use subtle::{Choice, ConstantTimeEq};
 
 fn check_bad(a: &[u32], b: &[u32]) -> Choice {
     for i in 0..(a.len() - 1) {
@@ -31,7 +31,17 @@ fn main() {
     let mut rng = Hc128Rng::from_seed([42u8; 32]);
     a[0] = rng.next_u32();
     let result_good = check_good(&a, &b);
+
+    if result_good.unwrap_u8() != 0 {
+        std::process::exit(1);
+    }
+
     let result_bad = check_bad(&a, &b);
+
+    if result_bad.unwrap_u8() != 0 {
+        std::process::exit(1);
+    }
+
     //println!("result_good:{:?}", result_good);
     //println!("result_bad:{:?}", result_bad);
     // let word = words[u8::conditional_select(&0u8, &1u8, result) as usize];
@@ -51,9 +61,10 @@ mod testing {
         let b = [0; 2];
         a[0] = rng.next_u32();
         let result = check_bad(&a, &b);
-        let out = u8::conditional_select(&0u8, &1u8, result);
+        let out = result.unwrap_u8();
         println!("bad:{:?}", out);
     }
+
     #[test]
     fn test_good() {
         let mut rng = Hc128Rng::from_seed([7u8; 32]);
@@ -61,7 +72,7 @@ mod testing {
         let b = [0; 2];
         a[0] = rng.next_u32();
         let result = check_good(&a, &b);
-        let out = u8::conditional_select(&0u8, &1u8, result);
+        let out = result.unwrap_u8();
         println!("bad:{:?}", out);
     }
 }
