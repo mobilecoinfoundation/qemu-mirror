@@ -15,17 +15,18 @@ fn check_good(a: &[u32], b: &[u32]) -> Choice {
     a.ct_eq(b)
 }
 
-fn main_old() {
-    let mut a = [0; 16];
-    let b = [0; 16];
-    a[0] = std::env::args().nth(1).unwrap().parse().unwrap();
-
-    println!("bad:{:?}", check_bad(&a, &b));
-    println!("good:{:?}", check_good(&a, &b));
-}
+// #[allow(dead_code)]
+// fn main_old() {
+//     let mut a = [0; 16];
+//     let b = [0; 16];
+//     a[0] = std::env::args().nth(1).unwrap().parse().unwrap();
+//
+//     println!("bad:{:?}", check_bad(&a, &b));
+//     println!("good:{:?}", check_good(&a, &b));
+// }
 
 fn main() {
-    let words = ["zero", "one"];
+    // let words = ["zero", "one"];
     let mut a = [0u32; 2];
     let b = [0u32; 2];
     let mut rng = Hc128Rng::from_seed([42u8; 32]);
