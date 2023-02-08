@@ -29,3 +29,6 @@ configure_out.txt
 configure_out2.txt
 configure_output_william
 mc-constant-time-test/target
+*.asm
+Cargo.lock
+mc-constant-time-test/target/
